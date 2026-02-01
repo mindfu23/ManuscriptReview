@@ -1,39 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-// Inline Koala SVG component
-function KoalaLogo({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-      {/* Koala face */}
-      <circle cx="50" cy="55" r="35" fill="#8B9A8E"/>
-      {/* Left ear */}
-      <circle cx="20" cy="30" r="18" fill="#8B9A8E"/>
-      <circle cx="20" cy="30" r="12" fill="#D4B896"/>
-      {/* Right ear */}
-      <circle cx="80" cy="30" r="18" fill="#8B9A8E"/>
-      <circle cx="80" cy="30" r="12" fill="#D4B896"/>
-      {/* Face inner */}
-      <ellipse cx="50" cy="60" rx="25" ry="22" fill="#C4CFC6"/>
-      {/* Nose */}
-      <ellipse cx="50" cy="55" rx="12" ry="9" fill="#4A5548"/>
-      {/* Eyes */}
-      <circle cx="38" cy="45" r="6" fill="#2D3A2E"/>
-      <circle cx="62" cy="45" r="6" fill="#2D3A2E"/>
-      <circle cx="40" cy="43" r="2" fill="white"/>
-      <circle cx="64" cy="43" r="2" fill="white"/>
-      {/* Glasses */}
-      <circle cx="38" cy="45" r="10" fill="none" stroke="#5a4a3a" strokeWidth="2"/>
-      <circle cx="62" cy="45" r="10" fill="none" stroke="#5a4a3a" strokeWidth="2"/>
-      <line x1="48" y1="45" x2="52" y2="45" stroke="#5a4a3a" strokeWidth="2"/>
-      <line x1="28" y1="43" x2="22" y2="38" stroke="#5a4a3a" strokeWidth="2"/>
-      <line x1="72" y1="43" x2="78" y2="38" stroke="#5a4a3a" strokeWidth="2"/>
-      {/* Mouth */}
-      <path d="M 44 65 Q 50 70 56 65" fill="none" stroke="#4A5548" strokeWidth="2" strokeLinecap="round"/>
-    </svg>
-  );
-}
-
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
@@ -47,13 +14,17 @@ export default function Navbar() {
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-3">
-              <KoalaLogo className="w-10 h-10" />
+              <img
+                src="/koala-mascot.png"
+                alt="Manuscript Koala"
+                className="w-12 h-12 object-contain"
+              />
               <div className="flex flex-col">
                 <span className="font-semibold text-xl text-primary-800">
                   Manuscript Koala
                 </span>
                 <span className="text-xs text-primary-600 hidden sm:block">
-                  Friendly feedback for writers
+                  AI feedback for writers
                 </span>
               </div>
             </Link>
