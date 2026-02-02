@@ -1,5 +1,12 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
+export interface ReviewSection {
+  id: string;
+  title: string;
+  content_markdown: string;
+  issue_count: number;
+}
+
 export interface ReviewResult {
   status: string;
   review_type: string;
@@ -8,6 +15,7 @@ export interface ReviewResult {
   issues_found: number;
   review_markdown: string;
   generated_at: string;
+  sections?: ReviewSection[];
 }
 
 export interface ToneInfo {
@@ -52,13 +60,16 @@ class ApiClient {
 
   async reviewManuscript(
     file: File,
-    reviewType: 'grammar' | 'style' | 'full' = 'grammar'
+    options: string[] = ['grammar']
   ): Promise<ReviewResult> {
     const formData = new FormData();
     formData.append('file', file);
 
+    // Join options as comma-separated string for query param
+    const optionsParam = options.join(',');
+
     const response = await fetch(
-      `${this.baseUrl}/review?review_type=${reviewType}`,
+      `${this.baseUrl}/review?options=${encodeURIComponent(optionsParam)}`,
       {
         method: 'POST',
         body: formData,

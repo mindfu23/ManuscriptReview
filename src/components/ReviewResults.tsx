@@ -1,10 +1,57 @@
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { ReviewResult } from '../services/api';
+import { ReviewResult, ReviewSection } from '../services/api';
 
 interface ReviewResultsProps {
   result: ReviewResult;
   onReset: () => void;
+}
+
+interface CollapsibleSectionProps {
+  section: ReviewSection;
+  defaultExpanded?: boolean;
+}
+
+function CollapsibleSection({ section, defaultExpanded = false }: CollapsibleSectionProps) {
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+
+  return (
+    <div className="border border-gray-200 rounded-lg overflow-hidden">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+      >
+        <div className="flex items-center gap-3">
+          <svg
+            className={`w-5 h-5 text-gray-500 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+          <span className="font-medium text-gray-900">{section.title}</span>
+        </div>
+        <span
+          className={`text-sm px-2 py-1 rounded-full ${
+            section.issue_count > 0
+              ? 'bg-amber-100 text-amber-700'
+              : 'bg-green-100 text-green-700'
+          }`}
+        >
+          {section.issue_count} issue{section.issue_count !== 1 ? 's' : ''}
+        </span>
+      </button>
+
+      {isExpanded && (
+        <div className="p-4 bg-white border-t border-gray-200">
+          <div className="prose prose-sm max-w-none">
+            <ReactMarkdown>{section.content_markdown}</ReactMarkdown>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function ReviewResults({ result, onReset }: ReviewResultsProps) {
@@ -36,12 +83,10 @@ export default function ReviewResults({ result, onReset }: ReviewResultsProps) {
           text: `Manuscript review with ${result.issues_found} issues found.`,
           files: [file],
         });
-      } catch (error) {
-        // User cancelled or share failed, fall back to download
+      } catch {
         downloadMarkdown();
       }
     } else {
-      // Fallback for browsers without Web Share API
       downloadMarkdown();
     }
   };
@@ -49,11 +94,12 @@ export default function ReviewResults({ result, onReset }: ReviewResultsProps) {
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(result.review_markdown);
-      // Could add a toast notification here
     } catch (error) {
       console.error('Failed to copy:', error);
     }
   };
+
+  const hasSections = result.sections && result.sections.length > 0;
 
   return (
     <div className="space-y-6">
@@ -123,28 +169,46 @@ export default function ReviewResults({ result, onReset }: ReviewResultsProps) {
         </div>
       </div>
 
-      {/* View toggle */}
-      <div className="flex justify-end">
-        <button
-          onClick={() => setShowRaw(!showRaw)}
-          className="text-sm text-gray-500 hover:text-gray-700"
-        >
-          {showRaw ? 'Show formatted' : 'Show raw markdown'}
-        </button>
-      </div>
+      {/* Sectioned results (if available) */}
+      {hasSections && (
+        <div className="space-y-3">
+          {result.sections!.map((section) => (
+            <CollapsibleSection
+              key={section.id}
+              section={section}
+              defaultExpanded={section.issue_count > 0}
+            />
+          ))}
+        </div>
+      )}
 
-      {/* Review content */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 overflow-x-auto">
-        {showRaw ? (
-          <pre className="text-sm text-gray-800 whitespace-pre-wrap font-mono">
-            {result.review_markdown}
-          </pre>
-        ) : (
-          <div className="prose prose-sm max-w-none">
-            <ReactMarkdown>{result.review_markdown}</ReactMarkdown>
+      {/* Fallback to full markdown (for backward compatibility or if no sections) */}
+      {!hasSections && (
+        <>
+          {/* View toggle */}
+          <div className="flex justify-end">
+            <button
+              onClick={() => setShowRaw(!showRaw)}
+              className="text-sm text-gray-500 hover:text-gray-700"
+            >
+              {showRaw ? 'Show formatted' : 'Show raw markdown'}
+            </button>
           </div>
-        )}
-      </div>
+
+          {/* Review content */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6 overflow-x-auto">
+            {showRaw ? (
+              <pre className="text-sm text-gray-800 whitespace-pre-wrap font-mono">
+                {result.review_markdown}
+              </pre>
+            ) : (
+              <div className="prose prose-sm max-w-none">
+                <ReactMarkdown>{result.review_markdown}</ReactMarkdown>
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }
