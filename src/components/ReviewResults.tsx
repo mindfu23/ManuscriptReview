@@ -176,7 +176,7 @@ export default function ReviewResults({ result, onReset }: ReviewResultsProps) {
             <CollapsibleSection
               key={section.id}
               section={section}
-              defaultExpanded={section.issue_count > 0}
+              defaultExpanded={false}
             />
           ))}
         </div>
