@@ -4,25 +4,25 @@ import { useReviewStore } from '../store/reviewStore';
 interface ReviewOption {
   id: string;
   label: string;
-  description: string;
+  description?: string;
   defaultChecked: boolean;
 }
 
 const MAIN_OPTIONS: ReviewOption[] = [
-  { id: 'typo', label: 'Typo Check', description: 'Spelling errors and typos', defaultChecked: true },
-  { id: 'grammar', label: 'Grammar Check', description: 'Grammar issues in narrative', defaultChecked: true },
-  { id: 'line_edit', label: 'Line Edit Polish', description: 'Adverbs, echoes, passive voice', defaultChecked: true },
-  { id: 'characters', label: 'Character List & Arcs', description: 'Character appearances and development', defaultChecked: true },
-  { id: 'plot_summary', label: 'Plot Summary', description: 'Scene-by-scene plot beats', defaultChecked: false },
-  { id: 'plot_holes', label: 'Possible Plot Holes', description: 'Continuity and logic issues', defaultChecked: false },
-  { id: 'developmental', label: 'Developmental Review', description: 'Tone, strengths, areas to improve', defaultChecked: true },
+  { id: 'typo', label: 'typos', defaultChecked: true },
+  { id: 'grammar', label: 'grammar', defaultChecked: true },
+  { id: 'line_edit', label: 'line edit', description: 'adverbs, echoes, passive voice', defaultChecked: true },
+  { id: 'characters', label: 'characters & arcs', defaultChecked: true },
+  { id: 'plot_summary', label: 'plot summary', defaultChecked: false },
+  { id: 'plot_holes', label: 'possible plot holes', defaultChecked: false },
+  { id: 'developmental', label: 'developmental review', description: 'tone, strengths, possible next steps', defaultChecked: true },
 ];
 
 const ADVANCED_OPTIONS: ReviewOption[] = [
-  { id: 'style_consistency', label: 'Style Consistency', description: 'Voice, POV, tense consistency', defaultChecked: false },
-  { id: 'dialogue_voice', label: 'Character Dialogue Voice', description: 'Speech pattern analysis per character', defaultChecked: false },
-  { id: 'pacing', label: 'Pacing & Tension', description: 'Tension curve analysis', defaultChecked: false },
-  { id: 'themes', label: 'Theme Detection', description: 'Identify themes and motifs', defaultChecked: false },
+  { id: 'style_consistency', label: 'style', defaultChecked: false },
+  { id: 'dialogue_voice', label: 'character dialogue & voice', defaultChecked: false },
+  { id: 'pacing', label: 'pacing', defaultChecked: false },
+  { id: 'themes', label: 'theme', defaultChecked: false },
 ];
 
 export const DEFAULT_OPTIONS = [...MAIN_OPTIONS, ...ADVANCED_OPTIONS]
@@ -33,55 +33,55 @@ export default function ReviewOptions() {
   const { selectedOptions, toggleOption } = useReviewStore();
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const renderOption = (option: ReviewOption) => (
+  const renderOption = (option: ReviewOption, indent = false) => (
     <label
       key={option.id}
-      className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+      className={`flex items-center gap-2 py-0.5 cursor-pointer hover:text-gray-900 transition-colors ${indent ? 'pl-4' : ''}`}
     >
       <input
         type="checkbox"
         checked={selectedOptions.includes(option.id)}
         onChange={() => toggleOption(option.id)}
-        className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+        className="h-3.5 w-3.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
       />
-      <div className="flex-1 min-w-0">
-        <span className="text-sm font-medium text-gray-900">{option.label}</span>
-        <p className="text-xs text-gray-500 mt-0.5">{option.description}</p>
-      </div>
+      <span className="text-sm text-gray-700">
+        {option.label}
+        {option.description && <span className="text-gray-400"> - {option.description}</span>}
+      </span>
     </label>
   );
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-1">
-        {MAIN_OPTIONS.map(renderOption)}
+    <div className="space-y-1">
+      <div>
+        {MAIN_OPTIONS.map(opt => renderOption(opt))}
       </div>
 
-      <div className="border-t border-gray-200 pt-3">
+      <div className="pt-1">
         <button
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors py-0.5"
         >
           <svg
-            className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-90' : ''}`}
+            className={`w-3 h-3 transition-transform ${showAdvanced ? 'rotate-90' : ''}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
-          Advanced Options
+          advanced
         </button>
 
         {showAdvanced && (
-          <div className="mt-2 pl-2 space-y-1">
-            {ADVANCED_OPTIONS.map(renderOption)}
+          <div>
+            {ADVANCED_OPTIONS.map(opt => renderOption(opt, true))}
           </div>
         )}
       </div>
 
-      <div className="text-xs text-gray-400 pt-2">
-        {selectedOptions.length} option{selectedOptions.length !== 1 ? 's' : ''} selected
+      <div className="text-xs text-gray-400 pt-1">
+        {selectedOptions.length} selected
       </div>
     </div>
   );
