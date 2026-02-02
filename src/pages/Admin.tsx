@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api, { AdminSettings } from '../services/api';
+import api, { AdminSettings, UsageStats } from '../services/api';
 
 export default function Admin() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -11,6 +11,8 @@ export default function Admin() {
   const [selectedTone, setSelectedTone] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
+
+  const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
 
   // Check if already logged in (token in memory)
   useEffect(() => {
@@ -26,6 +28,7 @@ export default function Admin() {
       await api.adminLogin(password);
       setIsLoggedIn(true);
       loadSettings();
+      loadUsageStats();
     } catch {
       setLoginError('Invalid password');
     } finally {
@@ -40,6 +43,15 @@ export default function Admin() {
       setSelectedTone(data.tone);
     } catch (error) {
       console.error('Failed to load settings:', error);
+    }
+  };
+
+  const loadUsageStats = async () => {
+    try {
+      const data = await api.getUsageStats();
+      setUsageStats(data);
+    } catch (error) {
+      console.error('Failed to load usage stats:', error);
     }
   };
 
@@ -62,6 +74,7 @@ export default function Admin() {
     api.clearAdminToken();
     setIsLoggedIn(false);
     setSettings(null);
+    setUsageStats(null);
     setPassword('');
   };
 
@@ -124,6 +137,57 @@ export default function Admin() {
           Logout
         </button>
       </div>
+
+      {/* API Usage Stats */}
+      {usageStats && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            API Usage This Month
+          </h2>
+          <p className="text-xs text-gray-500 mb-4">
+            Month: {new Date(usageStats.month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          </p>
+
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="bg-gray-50 rounded-lg p-4 text-center">
+              <p className="text-2xl font-bold text-primary-600">
+                ${usageStats.total_cost.toFixed(2)}
+              </p>
+              <p className="text-xs text-gray-500">Total Cost</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4 text-center">
+              <p className="text-2xl font-bold text-gray-900">
+                {usageStats.total_reviews}
+              </p>
+              <p className="text-xs text-gray-500">Reviews</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4 text-center">
+              <p className="text-2xl font-bold text-gray-900">
+                ${usageStats.avg_cost_per_review.toFixed(2)}
+              </p>
+              <p className="text-xs text-gray-500">Avg/Review</p>
+            </div>
+          </div>
+
+          {usageStats.recent_reviews.length > 0 && (
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Recent Reviews</h3>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {usageStats.recent_reviews.slice().reverse().map((review, i) => (
+                  <div key={i} className="flex justify-between items-center text-xs py-1 border-b border-gray-100">
+                    <span className="text-gray-600">
+                      {new Date(review.timestamp).toLocaleDateString()} - {review.word_count.toLocaleString()} words
+                    </span>
+                    <span className="text-gray-900 font-medium">
+                      ${review.estimated_cost.toFixed(3)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
         {/* Tone settings */}

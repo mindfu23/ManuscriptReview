@@ -30,6 +30,23 @@ export interface AdminSettings {
   available_tones: string[];
 }
 
+export interface RecentReview {
+  timestamp: string;
+  options: string[];
+  word_count: number;
+  estimated_cost: number;
+}
+
+export interface UsageStats {
+  month: string;
+  total_cost: number;
+  total_reviews: number;
+  avg_cost_per_review: number;
+  total_input_tokens: number;
+  total_output_tokens: number;
+  recent_reviews: RecentReview[];
+}
+
 class ApiClient {
   private baseUrl: string;
   private adminToken: string | null = null;
@@ -130,6 +147,19 @@ class ApiClient {
       throw new Error(error.detail || 'Failed to update tone');
     }
 
+    return response.json();
+  }
+
+  async getUsageStats(): Promise<UsageStats> {
+    if (!this.adminToken) throw new Error('Not authenticated');
+
+    const response = await fetch(`${this.baseUrl}/admin/usage`, {
+      headers: {
+        Authorization: `Bearer ${this.adminToken}`,
+      },
+    });
+
+    if (!response.ok) throw new Error('Failed to fetch usage stats');
     return response.json();
   }
 }
