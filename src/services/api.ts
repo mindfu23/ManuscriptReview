@@ -1,4 +1,8 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// Shared app token the backend requires on every call except /health (sent as X-App-Token).
+// It is bundled into the client JS, so it gates casual/scripted abuse, not a determined site visitor.
+const APP_TOKEN = import.meta.env.VITE_NOVEL_API_TOKEN || '';
+const APP_HEADERS: Record<string, string> = APP_TOKEN ? { 'X-App-Token': APP_TOKEN } : {};
 
 export interface ReviewSection {
   id: string;
@@ -70,7 +74,7 @@ class ApiClient {
   }
 
   async getTones(): Promise<ToneInfo> {
-    const response = await fetch(`${this.baseUrl}/tones`);
+    const response = await fetch(`${this.baseUrl}/tones`, { headers: APP_HEADERS });
     if (!response.ok) throw new Error('Failed to fetch tones');
     return response.json();
   }
@@ -89,6 +93,7 @@ class ApiClient {
       `${this.baseUrl}/review?options=${encodeURIComponent(optionsParam)}`,
       {
         method: 'POST',
+        headers: APP_HEADERS,
         body: formData,
       }
     );
@@ -104,7 +109,7 @@ class ApiClient {
   async adminLogin(password: string): Promise<{ success: boolean; token: string }> {
     const response = await fetch(`${this.baseUrl}/admin/login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...APP_HEADERS, 'Content-Type': 'application/json' },
       body: JSON.stringify({ password }),
     });
 
@@ -122,6 +127,7 @@ class ApiClient {
 
     const response = await fetch(`${this.baseUrl}/admin/settings`, {
       headers: {
+        ...APP_HEADERS,
         Authorization: `Bearer ${this.adminToken}`,
       },
     });
@@ -136,6 +142,7 @@ class ApiClient {
     const response = await fetch(`${this.baseUrl}/admin/settings`, {
       method: 'POST',
       headers: {
+        ...APP_HEADERS,
         'Content-Type': 'application/json',
         Authorization: `Bearer ${this.adminToken}`,
       },
@@ -155,6 +162,7 @@ class ApiClient {
 
     const response = await fetch(`${this.baseUrl}/admin/usage`, {
       headers: {
+        ...APP_HEADERS,
         Authorization: `Bearer ${this.adminToken}`,
       },
     });
